@@ -1,0 +1,7 @@
+while true
+do
+	~/cjdns/cjdroute --nobg < ~/cjdroute.conf
+	sleep 1
+	killall -9 cjdroute
+	sleep 1
+done

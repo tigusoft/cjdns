@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+if [[ ! -r "go" ]] ; then echo "Error: Run me from the script's dir." ; exit 1 ; fi
+
+cp 'go' "$HOME/"
+cp 'loop' "$HOME/"
+
+cd ..
+
+./do
+
+./cjdroute --genconf > "$HOME/cjdroute.conf"
+
+echo
+echo "1) Add this to file edited by 'crontab -e' : "
+echo '@reboot ~/go'
+echo ""
+echo "2) As root run:"
+echo "setcap \"cap_net_admin+eip cap_net_raw+eip\"  $HOME/cjdns/cjdroute"
+echo ""
+echo "3) Return to user and run:"
+echo "su $USER"
+echo '~/go'
+echo
+
+

@@ -19,6 +19,7 @@
 #include "util/Seccomp.h"
 #include "util/Bits.h"
 #include "util/ArchInfo.h"
+#include "util/Defined.h"
 
 // getpriority()
 #include <sys/resource.h>
@@ -51,7 +52,8 @@
 #if defined(si_syscall)
 # define GET_SYSCALL_NUM(si) ((si)->si_syscall)
 #else
-# warning "your libc doesn't define SIGSYS signal info! Try build witch Seccomp_NO=1"
+#pragma message "your libc doesn't define SIGSYS signal info! \
+info about syscall number in case of SECCOMP crash can be invalid"
 # define GET_SYSCALL_NUM(si) ((si)->si_value.sival_int)
 #endif
 
@@ -59,6 +61,12 @@ static void catchViolation(int sig, siginfo_t* si, void* threadContext)
 {
     printf("Attempted banned syscall number [%d] see doc/Seccomp.md for more information\n",
            GET_SYSCALL_NUM(si));
+
+    if (Defined(si_syscall)) {
+        printf("Your libc doesn't define SIGSYS signal info. "
+               "Above information about syscall number can be invalid.\n");
+    }
+
     Assert_failure("Disallowed Syscall");
 }
 
@@ -314,9 +322,13 @@ static struct sock_fprog* mkFilter(struct Allocator* alloc, struct Except* eh)
         // Security_nofiles
         IFEQ(__NR_setrlimit, success),
 
-        // for ETHInterface_listDevices (netlink)
+        // for ETHInterface_listDevices (netlinkk)
+        #ifdef __NR_bind
         IFEQ(__NR_bind, bind_netlink),
+        #endif
+        #ifdef __NR_getsockname
         IFEQ(__NR_getsockname, success),
+        #endif
         RET(SECCOMP_RET_TRAP),
 
         LABEL(socket),

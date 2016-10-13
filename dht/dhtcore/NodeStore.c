@@ -212,6 +212,7 @@ static void _checkNode(struct Node_Two* node, struct NodeStore_pvt* store, char*
 
 static void _verifyNode(struct Node_Two* node, struct NodeStore_pvt* store, char* file, int line)
 {
+    return; // Too much CPU consumption.
     if (!Defined(PARANOIA)) {
         return;
     }
@@ -1735,7 +1736,7 @@ struct NodeList* NodeStore_getPeers(uint64_t label,
 
     struct Node_Link* next = NULL;
     RB_FOREACH(next, PeerRBTree, &store->pub.selfNode->peerTree) {
-        uint64_t p = next->child->address.path;
+        uint64_t p = next->cannonicalLabel;
         if (!Node_isOneHopLink(next) && p != 1) { continue; }
         if (p == UINT64_MAX) { continue; }
         if (p < label) { continue; }
